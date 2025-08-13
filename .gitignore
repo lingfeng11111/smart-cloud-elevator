@@ -1,0 +1,72 @@
+# 依赖文件
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 构建输出
+dist/
+build/
+target/
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+
+# Java编译文件
+*.class
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Spring Boot
+application-*.yml
+application-*.properties
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# H2数据库文件
+*.mv.db
+*.trace.db
+
+# 备份文件
+*.bak
+*.backup
+
+# 缓存文件
+.cache/
+.parcel-cache/
+
+# 测试覆盖率报告
+coverage/
+*.lcov
+
+# ESLint缓存
+.eslintcache 
