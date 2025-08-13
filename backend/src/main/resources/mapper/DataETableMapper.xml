@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.V1.mapper.DataETableMapper">
+
+    <select id="selectWithAiPage" resultType="com.example.V1.Dto.AbnormalDataWithAiDTO">
+        SELECT d.id,
+               d.create_time    AS createTime,
+               d.system_name    AS systemName,
+               d.system_sq_name AS systemSqName,
+               d.e_name         AS eName,
+               d.e_data         AS eData,
+               a.ai_code        AS aiCode,
+               a.ai_result      AS aiResult
+        FROM data_e_table d
+        LEFT JOIN ai_table a ON a.e_id = d.id
+        ORDER BY d.create_time DESC
+    </select>
+
+</mapper>
+
