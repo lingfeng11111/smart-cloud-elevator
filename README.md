@@ -1,127 +1,81 @@
 # 智云梯 - Smart Cloud Elevator
 
-## 项目简介
+一个基于 AI/ML 的电梯实时监控、异常检测与寿命预测系统。前端 Vue 3 + Vite，后端 Spring Boot + WebSocket，内置规则引擎与可选 TF.js 轻量模型增强，并可调用云端大模型进行深度分析。
 
-智云梯是一个基于AI和ML技术的智能电梯监控与故障预测系统。系统结合了前端Vue.js界面、后端Spring Boot服务以及先进的机器学习算法，提供实时监控、异常检测、故障预测和维护管理功能。
-
-## 核心功能
-
-### 🤖 AI智能分析
-- **前端ML模型**: 基于TensorFlow.js的实时异常检测
-- **云端AI分析**: 深度学习模型进行复杂故障诊断
-- **多层分析架构**: 规则引擎 + ML增强 + 云端AI的三层分析体系
-
-### 📊 实时监控
-- **系统监控**: 曳引系统、导向系统、电气控制系统、门系统
-- **参数监测**: 温度、电流、振动、电压等多维度数据
-- **3D可视化**: 沉浸式电梯系统展示
-
-### 🔧 智能维护
-- **故障预测**: 基于历史数据和ML算法的预防性维护
-- **人员分配**: 智能维修人员调度系统
-- **维护记录**: 完整的维护历史和报告
-
-### 📈 数据分析
-- **异常数据记录**: 完整的故障和异常事件日志
-- **趋势分析**: 系统性能和健康状况趋势
-- **报表生成**: 自动化维护和性能报告
-
-## 技术架构
-
-### 前端技术栈
-- **Vue.js 3**: 现代化响应式前端框架
-- **TensorFlow.js**: 浏览器端机器学习
-- **WebSocket**: 实时数据通信
-- **Three.js**: 3D可视化渲染
-
-### 后端技术栈
-- **Spring Boot**: Java企业级开发框架
-- **MyBatis Plus**: 数据库ORM框架
-- **H2 Database**: 嵌入式数据库
-- **WebSocket**: 实时通信支持
-
-### AI/ML技术
-- **规则引擎**: 基于专家知识的故障检测
-- **神经网络**: TensorFlow.js轻量级ML模型
-- **云端AI**: 大语言模型深度分析
-- **混合分析**: 多种算法融合的智能诊断
-
-## 项目结构
+## 目录与架构
 
 ```
-smart-cloud-elevator/
-├── frontend/                 # Vue.js前端应用
-│   ├── src/
-│   │   ├── components/      # Vue组件
-│   │   ├── services/        # 业务服务层
-│   │   ├── composables/     # Vue3组合式函数
-│   │   └── views/           # 页面视图
-├── backend/                  # Spring Boot后端
-│   ├── src/main/java/       # Java源码
-│   │   └── com/example/
-│   │       └── V1/          # API v1
-│   └── src/main/resources/  # 配置文件
-├── data/                     # 数据文件
-│   ├── *.csv               # 电梯数据集
-│   └── data_generator.py   # 数据生成脚本
-└── docs/                     # 项目文档
+zhiyunti/
+├─ backend/    # Spring Boot 服务（WebSocket、REST、AI代理、H2 数据库）
+├─ frontend/   # Vue 3 + Vite 前端（仪表盘、可视化、前端规则/ML分析）
+├─ data/       # 示例与真实数据集（CSV 等）
+└─ docs/       # 架构与算法说明
 ```
+
+- 实时通信：`/ws/elevator/status/{elevatorId}`
+- 异常分析：前端 规则优先 + ML 增强；后端 调用大模型并结合知识库输出结构化 JSON
+- 数据库：默认 H2（开发），控制台 `/h2-console`
 
 ## 快速开始
 
-### 环境要求
-- Node.js 16+
-- Java 11+
-- Maven 3.6+
+### 1) 后端（Java 11+，Maven 3.6+）
 
-### 前端启动
+强烈建议用环境变量注入大模型信息，避免在 `application.yml` 暴露密钥。
+
+```bash
+# 必需：替换为你的真实值
+export SPRING_AI_OPENAI_API_KEY=YOUR_KEY
+export SPRING_AI_OPENAI_BASE_URL=https://api.deepseek.com
+export SPRING_AI_OPENAI_CHAT_OPTIONS_MODEL=deepseek-chat
+
+cd backend
+mvn spring-boot:run
+```
+
+- 后端默认地址：`http://localhost:8080`
+- H2 控制台：`http://localhost:8080/h2-console`
+
+> 如需使用非 H2 数据库，建议引入 Flyway/Liquibase 并调整 `application.yml`。
+
+### 2) 前端（Node.js 16+）
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-### 后端启动
-```bash
-cd backend
-mvn spring-boot:run
-```
+- 前端开发地址：`http://localhost:5173`
+- WebSocket 将连接后端 `/ws/elevator/status/{elevatorId}`（默认示例电梯 ID 可在前端页面设置）
 
-### 访问应用
-- 前端界面: http://localhost:5173
-- 后端API: http://localhost:8080
+## 主要能力
 
-## 核心特性
+- 实时监控：楼层、速度、门状态、方向、温度、载荷等指标
+- 异常检测：阈值规则 + 在线统计（EWMA/CUSUM 元信息）+ 可选 TF.js 轻量模型增强
+- 云端深度分析：Spring AI 调用大模型，结合 `knowledge.jsonl` 输出结构化结论（严重等级/建议/RUL）
+- 可视化：Dashboard、系统关系视图、参数曲线、3D 组件
 
-### 🎯 AI分析流程
-1. **AI数据模拟**: 生成模拟异常数据
-2. **前端ML分析**: 实时本地智能分析
-3. **用户交互**: 三种选择路径
-   - 直接分配维修人员
-   - 忽略警告（仅警告级别）
-   - 进行云端深度分析
-4. **云端AI分析**: 大模型深度诊断
+更多细节见 `docs/architecture-and-algorithms.md`。
 
-### 🔍 ML分析能力
-- **参数范围检测**: 基于物理规律的阈值判断
-- **异常评分**: 0-1范围的异常程度量化
-- **故障分类**: 严重故障、警告、正常三级分类
-- **置信度评估**: 分析结果可信度评估
+## 配置要点（安全）
 
-### 💡 智能特性
-- **自适应学习**: ML模型持续优化
-- **多维分析**: 温度、电流、振动等多参数融合
-- **实时响应**: 毫秒级异常检测
-- **可视化展示**: 直观的3D系统状态展示
+- 不要将密钥写入 `application.yml`；使用环境变量覆盖 `spring.ai.openai.*`
+- 若曾提交过密钥，请立即在服务商重置并强制失效旧密钥
 
-## 贡献指南
+## 常见问题
 
-欢迎提交Issue和Pull Request来改进项目。
+- 前端/后端联不通：检查后端端口（8080）、前端代理与 WebSocket URL 是否一致
+- H2 控制台无法登录：确保 JDBC URL、用户名（默认 `sa`）与驱动匹配
+- 大模型响应非 JSON：后端已做清洗与解析，但建议在提示词中强制 `json_object` 格式
+
+## 变更说明
+
+- backend、frontend 现为普通文件夹，已与父仓库分离（非子模块）。
 
 ## 许可证
 
 MIT License
 
-## 联系方式
+## 维护者
 
-项目维护者: [lingfeng11111](https://github.com/lingfeng11111) 
+- lingfeng11111（GitHub） 
