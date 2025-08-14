@@ -2,7 +2,7 @@ spring:
   application:
     name: ElectorAI
   datasource:
-    url: jdbc:h2:tcp://localhost//Users/lingfeng/Desktop/zhiyunti/backend/SQL/H2elevator;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;FILE_LOCK=FS
+    url: jdbc:h2:tcp://localhost:9092//Users/lingfeng/Desktop/zhiyunti/backend/SQL/H2elevator;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;FILE_LOCK=FS
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -33,6 +33,12 @@ spring:
 
 server:
   port: 8080
+
+# H2数据库配置
+h2:
+  tcp:
+    port: 9092
+    fallback-port: 9093
 
 mybatis-plus:
   type-handlers-package: com.example.V1.Handler
