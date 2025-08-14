@@ -262,10 +262,13 @@ export default {
   },
 
   /**
-   * 获取AI寿命预测分析
+   * 获取AI寿命预测分析 (已弃用)
+   * @deprecated 建议使用 getMCPLifetimeAnalysis
    * @returns {Promise<Object>}
    */
   getLifetimeAnalysis() {
+    console.warn('⚠️ getLifetimeAnalysis已弃用，建议使用getMCPLifetimeAnalysis');
+    
     // 使用axios发起GET请求
     return axios.get(`${config.API_BASE_URL}/data-etable/lifetime-analysis`)
       .then(response => {
@@ -273,103 +276,116 @@ export default {
         
         // 情况1: 后端直接返回了正确的数据结构 {main: "...", message: "..."}
         if (response.data && 
-            typeof response.data.main === 'string' && 
-            typeof response.data.message === 'string') {
-          console.log('直接使用返回的main和message字段');
-          return { data: response.data };
-        }
-        
-        // 情况2: 处理嵌套JSON的情况
-        if (response.data && response.data.message && typeof response.data.message === 'string') {
-          // 检查是否是Markdown代码块格式
-          const markdownMatch = response.data.message.match(/```json\s*([\s\S]*?)\s*```/);
-          if (markdownMatch && markdownMatch[1]) {
-            try {
-              // 提取并解析内部JSON
-              const innerJson = JSON.parse(markdownMatch[1]);
-              console.log('成功提取Markdown代码块中的JSON:', innerJson);
-              return { data: innerJson };
-            } catch (e) {
-              console.error('内部JSON解析失败:', e);
-            }
-          }
+            response.data.data && 
+            typeof response.data.data === 'string') {
           
-          // 如果不是Markdown格式，尝试直接作为JSON解析
-          if (response.data.message.trim().startsWith('{')) {
-            try {
-              const jsonData = JSON.parse(response.data.message);
-              console.log('直接从message解析JSON:', jsonData);
-              return { data: jsonData };
-            } catch (e) {
-              console.error('message解析为JSON失败:', e);
-            }
-          }
-        }
-        
-        // 情况3: 返回的数据包含在data字段中
-        if (response.data && response.data.data) {
-          if (typeof response.data.data === 'string' && response.data.data.trim().startsWith('{')) {
-            try {
-              // 尝试解析data字段中的JSON字符串
-              const jsonData = JSON.parse(response.data.data);
-              console.log('从data字段解析JSON:', jsonData);
-              if (jsonData.main && jsonData.message) {
-                return { data: jsonData };
-              }
-            } catch (e) {
-              console.error('解析data字段中的JSON失败:', e);
-            }
-          } else if (response.data.data.main && response.data.data.message) {
-            // data字段已经是一个包含所需字段的对象
-            console.log('使用data字段中的对象');
-            return { data: response.data.data };
-          }
-        }
-        
-        // 情况4: 整个响应就是JSON字符串
-        if (typeof response.data === 'string' && response.data.trim().startsWith('{')) {
           try {
-            const jsonData = JSON.parse(response.data);
-            console.log('解析整个响应作为JSON:', jsonData);
-            if (jsonData.main && jsonData.message) {
-              return { data: jsonData };
-            } else if (jsonData.data && jsonData.data.main && jsonData.data.message) {
-              return { data: jsonData.data };
+            // 尝试解析后端返回的JSON字符串
+            const parsedData = JSON.parse(response.data.data);
+            
+            console.log('解析后的数据:', parsedData);
+            
+            // 如果解析成功且包含预期的字段，返回解析后的数据
+            if (parsedData.main || parsedData.message) {
+              return {
+                success: true,
+                data: parsedData
+              };
             }
           } catch (e) {
-            console.error('解析整个响应为JSON失败:', e);
+            console.log('JSON解析失败，将原始字符串作为main返回');
+            // 如果JSON解析失败，将整个字符串作为main字段返回
+            return {
+              success: true,
+              data: {
+                main: response.data.data,
+                message: "AI分析完成"
+              }
+            };
           }
         }
         
-        // 情况5: 检查是否已经是所需格式的部分内容
-        if (response.data && (response.data.main || response.data.message)) {
-          console.log('数据部分匹配预期格式，尝试构造完整对象');
-          return { 
-            data: {
-              main: response.data.main || "无主要分析内容",
-              message: response.data.message || "无详细分析内容"
-            } 
-          };
-        }
-        
-        // 如果以上都失败，返回默认值
-        console.warn('无法解析数据，使用默认值');
+        // 情况2: 如果数据结构不符合预期，尝试适配
         return {
+          success: true,
           data: {
-            main: "无法解析服务器返回数据",
-            message: "服务器返回了无法识别的数据格式。请检查API响应格式或联系管理员。"
+            main: response.data.data || "暂无分析结果",
+            message: response.data.message || "分析完成"
           }
         };
       })
       .catch(error => {
-        console.error('获取AI寿命预测分析失败:', error);
-        // 如果API不可用，返回模拟数据
-        return {
-          data: {
-            main: "智云梯1号预计使用寿命还剩7.2年，智云梯2号需注意曳引系统异常情况。",
-            message: "基于过去6个月的运行数据分析，系统监测到以下情况：\n\n1. 智云梯1号：\n- 曳引系统运行稳定，参数在正常范围内\n- 导向系统磨损率低于平均水平15%\n- 电气控制系统响应时间稳定\n- 门系统开关次数累计达标\n\n2. 智云梯2号：\n- 曳引钢丝绳有轻微磨损迹象，但仍在安全范围内\n- 轴承温度在过去两个月有小幅上升趋势\n- 建议在下次维护时进行详细检查\n\n总体评估：设备运行状态良好，建议保持现有维护周期，特别关注智云梯2号的曳引系统。"
-          }
-        };
+        console.error('获取寿命分析数据失败:', error);
+        throw error;
       });
+  },
+
+  /**
+   * 获取MCP寿命分析信息 (新接口)
+   * @returns {Promise<Object>}
+   */
+  getMCPLifetimeAnalysis() {
+    return axios.get(`${config.API_BASE_URL}/data-etable/mcp-lifetime-analysis`)
+      .then(response => {
+        console.log('MCP寿命分析接口信息:', response.data);
+        return {
+          success: true,
+          data: response.data.data
+        };
+      })
+      .catch(error => {
+        console.error('获取MCP寿命分析信息失败:', error);
+        throw error;
+      });
+  },
+
+  /**
+   * 使用DeepSeek API进行MCP Function Calling寿命分析
+   * @param {string} elevatorId - 电梯ID (可选)
+   * @param {number} monthsBack - 分析几个月内的数据 (默认12)
+   * @returns {Promise<Object>}
+   */
+  async analyzeLifespanWithMCP(elevatorId = null, monthsBack = 12) {
+    try {
+      // 这里应该是通过DeepSeek API进行function calling
+      // 暂时返回模拟数据，实际项目中需要集成DeepSeek API
+      
+      console.log(`🤖 准备使用MCP分析电梯寿命: 电梯ID=${elevatorId}, 分析月数=${monthsBack}`);
+      
+      // 模拟DeepSeek Function Calling请求
+      const mockAnalysis = {
+        elevator_id: elevatorId || "ALL",
+        analysis_period: `${monthsBack}个月`,
+        health_score: 85.2,
+        remaining_useful_life: "预计还可正常使用18-24个月",
+        risk_factors: [
+          "曳引系统磨损程度偏高",
+          "门系统响应时间略有延迟"
+        ],
+        maintenance_recommendations: [
+          "建议2周内检查曳引系统",
+          "优化门系统校准参数",
+          "增加日常润滑保养频次"
+        ],
+        prediction_confidence: 0.87,
+        analysis_method: "MCP Function Calling + AI深度分析"
+      };
+      
+      // 模拟异步处理时间
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      return {
+        success: true,
+        data: {
+          main: JSON.stringify(mockAnalysis, null, 2),
+          message: "MCP寿命分析完成",
+          analysis_type: "mcp_function_calling"
+        }
+      };
+      
+    } catch (error) {
+      console.error('MCP寿命分析失败:', error);
+      throw error;
+    }
   }
 };

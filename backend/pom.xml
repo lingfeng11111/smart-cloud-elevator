@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.0</version>
+        <version>3.2.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
@@ -114,6 +114,19 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Jython依赖，用于Python MCP集成 -->
+        <dependency>
+            <groupId>org.python</groupId>
+            <artifactId>jython-standalone</artifactId>
+            <version>2.7.3</version>
+        </dependency>
+
+        <!-- JSON处理优化 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>
@@ -165,7 +178,7 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.15.0</version>
                 <configuration>
-                    <workingDirectory>../</workingDirectory>
+                    <workingDirectory>../frontend</workingDirectory>
                     <installDirectory>target</installDirectory>
                 </configuration>
                 <executions>
@@ -219,7 +232,7 @@
                             <outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../dist</directory>
+                                    <directory>../frontend/dist</directory>
                                     <filtering>false</filtering>
                                 </resource>
                             </resources>
@@ -235,7 +248,7 @@
                             <outputDirectory>${project.build.outputDirectory}/templates</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../dist</directory>
+                                    <directory>../frontend/dist</directory>
                                     <includes>
                                         <include>index.html</include>
                                     </includes>
@@ -267,7 +280,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.5.0</version> <!-- 与parent版本一致 -->
+                <version>3.2.0</version> <!-- 与parent版本一致 -->
                 <configuration>
                     <includeSystemScope>true</includeSystemScope>
                 </configuration>

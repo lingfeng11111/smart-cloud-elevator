@@ -35,6 +35,13 @@ public class Result <T>{
     }
 
     /**
+     * 成功响应 (只带数据)
+     */
+    public static <T> Result<T> success(T data) {
+        return new Result<T>().setCode(200).setMessage("操作成功").setData(data);
+    }
+
+    /**
      * 成功响应 带消息 和 带数据
      */
     public static <T> Result<T> success(String message,T data) {

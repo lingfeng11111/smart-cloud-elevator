@@ -22,7 +22,11 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -272,6 +276,122 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
         } catch (Exception e) {
             // 捕获其他异常
             return Result.error("分析失败: " + e.getMessage());
+        }
+    }
+
+    // ========================= MCP专用方法实现 =========================
+
+    @Override
+    public List<DataETable> getAnomalyPatternsForMCP(Map<String, Object> params) {
+        try {
+            log.info("🔍 MCP查询异常模式数据: {}", params);
+            
+            LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
+            
+            // 根据参数构建查询条件
+            if (params.containsKey("systemName") && params.get("systemName") != null) {
+                queryWrapper.eq(DataETable::getSystemName, params.get("systemName"));
+            }
+            
+            if (params.containsKey("daysBack") && params.get("daysBack") != null) {
+                int daysBack = (Integer) params.get("daysBack");
+                queryWrapper.ge(DataETable::getCreateTime, 
+                    LocalDateTime.now().minusDays(daysBack));
+            }
+            
+            // 按创建时间倒序，限制数量避免数据过多
+            queryWrapper.orderByDesc(DataETable::getCreateTime)
+                    .last("LIMIT 200");
+            
+            List<DataETable> results = this.baseMapper.selectList(queryWrapper);
+            log.info("✅ MCP查询异常模式完成，返回{}条记录", results.size());
+            
+            return results;
+            
+        } catch (Exception e) {
+            log.error("❌ MCP查询异常模式失败", e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<DataETable> getRecentAnomaliesForMCP(String elevatorId, int days) {
+        try {
+            log.info("🔍 MCP查询最近异常数据: elevatorId={}, days={}", elevatorId, days);
+            
+            LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
+            
+            // 时间范围条件
+            queryWrapper.ge(DataETable::getCreateTime, LocalDateTime.now().minusDays(days));
+            
+            // 注意：DataETable可能没有elevatorId字段，这里做简化处理
+            // 实际项目中可能需要通过其他方式关联电梯ID
+            
+            queryWrapper.orderByDesc(DataETable::getCreateTime)
+                    .last("LIMIT 100");
+            
+            List<DataETable> results = this.baseMapper.selectList(queryWrapper);
+            log.info("✅ MCP查询最近异常完成，返回{}条记录", results.size());
+            
+            return results;
+            
+        } catch (Exception e) {
+            log.error("❌ MCP查询最近异常失败", e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<DataETable> getAllRecentAnomaliesForMCP(int days) {
+        try {
+            log.info("🔍 MCP查询所有电梯最近异常数据: days={}", days);
+            
+            LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.ge(DataETable::getCreateTime, LocalDateTime.now().minusDays(days))
+                    .orderByDesc(DataETable::getCreateTime)
+                    .last("LIMIT 500"); // 限制总数量
+            
+            List<DataETable> results = this.baseMapper.selectList(queryWrapper);
+            log.info("✅ MCP查询所有异常完成，返回{}条记录", results.size());
+            
+            return results;
+            
+        } catch (Exception e) {
+            log.error("❌ MCP查询所有异常失败", e);
+            return new ArrayList<>();
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getAllElevatorsForMCP() {
+        try {
+            log.info("🔍 MCP获取所有电梯信息");
+            
+            // 由于当前数据库结构中可能没有专门的电梯表
+            // 这里返回模拟的电梯信息，实际项目中需要根据具体表结构调整
+            List<Map<String, Object>> elevators = new ArrayList<>();
+            
+            // 模拟电梯数据
+            Map<String, Object> elevator1 = new HashMap<>();
+            elevator1.put("id", "EL-001");
+            elevator1.put("name", "1号电梯");
+            elevator1.put("location", "A座");
+            elevator1.put("status", "运行中");
+            elevators.add(elevator1);
+            
+            Map<String, Object> elevator2 = new HashMap<>();
+            elevator2.put("id", "EL-002");
+            elevator2.put("name", "2号电梯");
+            elevator2.put("location", "B座");
+            elevator2.put("status", "维护中");
+            elevators.add(elevator2);
+            
+            log.info("✅ MCP获取电梯信息完成，返回{}台电梯", elevators.size());
+            return elevators;
+            
+        } catch (Exception e) {
+            log.error("❌ MCP获取电梯信息失败", e);
+            return new ArrayList<>();
         }
     }
 }

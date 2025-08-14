@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * <p>
  * 异常数据表 前端控制器
@@ -29,10 +33,37 @@ public class DataETableController {
 
     /**
      * 寿命分析
+     * @deprecated 此接口已弃用，请使用 /mcp/tools/lifetime-analysis (MCP Function Calling)
      */
+    @Deprecated
     @GetMapping("/lifetime-analysis")
     public Result<String> getLifetimeAnalysis() {
+        // 添加弃用警告日志
+        log.warn("⚠️ 使用了已弃用的寿命分析接口 /data-etable/lifetime-analysis，建议使用 MCP Function Calling");
         return dataETableService.getLifetimeAnalysis();
+    }
+
+    /**
+     * 新的MCP寿命分析接口 - 支持更智能的AI数据查询
+     */
+    @GetMapping("/mcp-lifetime-analysis")
+    public Result<Map<String, Object>> getMCPLifetimeAnalysis() {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "请使用 MCP Function Calling 进行智能寿命分析");
+            response.put("mcp_endpoint", "/mcp/tools/analyze_equipment_lifespan");
+            response.put("function_calling_tools", Arrays.asList(
+                "query_maintenance_history",
+                "analyze_anomaly_patterns", 
+                "calculate_equipment_health_score",
+                "get_comprehensive_system_status"
+            ));
+            response.put("example_request", "通过 DeepSeek API 的 function calling 调用上述工具进行深度分析");
+            
+            return Result.success(response);
+        } catch (Exception e) {
+            return Result.error("MCP寿命分析接口初始化失败: " + e.getMessage());
+        }
     }
 
     /**
