@@ -51,6 +51,4 @@ public interface IDataETableService extends IService<DataETable> {
     // 分页查询异常数据（原有接口，供前端旧路径使用）
     Result<IPage<DataETable>> getErrorData(long current, long size, Long id, String systemName, String systemSqName);
 
-    // AI 预测电梯寿命分析
-    Result<String> getLifetimeAnalysis();
 }

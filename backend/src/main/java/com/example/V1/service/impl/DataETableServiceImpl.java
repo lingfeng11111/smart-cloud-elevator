@@ -69,6 +69,7 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
     /**
      * 异常数据接收，AI分析并存储（AI失败也存）
      */
+    @Override
     public Result<String> getgainData(DataETable dataETable) {
         try {
             // 1. 设置默认字段
@@ -238,53 +239,13 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
        }
     }
 
-    /**
-     * AI预测电梯寿命
-     */
-    @Override
-    public Result<String> getLifetimeAnalysis() {
-        try {
-            // 获取异常表最新的十条消息
-            LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.orderByDesc(DataETable::getCreateTime)
-                    .last("LIMIT 10");
-            List<DataETable> dataList = this.baseMapper.selectList(queryWrapper);
-
-            // 将数据转换为 JSON 字符串
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = objectMapper.writeValueAsString(dataList);
-
-            // 调试输出，看一下数据格式
-            System.out.println("查询结果 JSON： " + json);
-
-            // 构造提示词
-            List<PromptKnowledge> knowledgeList = KnowledgeLoader.loadKnowledgeFromJson();
-            String prompt = new AiPredictsLifespanConfig().aiPredictsLifespan(knowledgeList, json);
-
-            // 调用 AI 进行寿命预测分析
-            String aiResult = knowledgeLoader.call(prompt);
-
-            // 返回 AI 分析结果
-            return Result.success(aiResult);
-
-        } catch (JsonProcessingException e) {
-            // 捕获 JSON 处理异常
-            return Result.error("JSON 处理失败: " + e.getMessage());
-        } catch (IOException e) {
-            // 捕获 IO 异常
-            return Result.error("AI 分析失败: " + e.getMessage());
-        } catch (Exception e) {
-            // 捕获其他异常
-            return Result.error("分析失败: " + e.getMessage());
-        }
-    }
 
     // ========================= MCP专用方法实现 =========================
 
     @Override
     public List<DataETable> getAnomalyPatternsForMCP(Map<String, Object> params) {
         try {
-            log.info("🔍 MCP查询异常模式数据: {}", params);
+            log.info("MCP查询异常模式数据: {}", params);
             
             LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
             
@@ -304,12 +265,12 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
                     .last("LIMIT 200");
             
             List<DataETable> results = this.baseMapper.selectList(queryWrapper);
-            log.info("✅ MCP查询异常模式完成，返回{}条记录", results.size());
+            log.info("MCP查询异常模式完成，返回{}条记录", results.size());
             
             return results;
             
         } catch (Exception e) {
-            log.error("❌ MCP查询异常模式失败", e);
+            log.error("MCP查询异常模式失败", e);
             return new ArrayList<>();
         }
     }
@@ -317,7 +278,7 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
     @Override
     public List<DataETable> getRecentAnomaliesForMCP(String elevatorId, int days) {
         try {
-            log.info("🔍 MCP查询最近异常数据: elevatorId={}, days={}", elevatorId, days);
+            log.info("MCP查询最近异常数据: elevatorId={}, days={}", elevatorId, days);
             
             LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
             
@@ -331,12 +292,12 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
                     .last("LIMIT 100");
             
             List<DataETable> results = this.baseMapper.selectList(queryWrapper);
-            log.info("✅ MCP查询最近异常完成，返回{}条记录", results.size());
+            log.info("MCP查询最近异常完成，返回{}条记录", results.size());
             
             return results;
             
         } catch (Exception e) {
-            log.error("❌ MCP查询最近异常失败", e);
+            log.error("MCP查询最近异常失败", e);
             return new ArrayList<>();
         }
     }
@@ -344,7 +305,7 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
     @Override
     public List<DataETable> getAllRecentAnomaliesForMCP(int days) {
         try {
-            log.info("🔍 MCP查询所有电梯最近异常数据: days={}", days);
+            log.info("MCP查询所有电梯最近异常数据: days={}", days);
             
             LambdaQueryWrapper<DataETable> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.ge(DataETable::getCreateTime, LocalDateTime.now().minusDays(days))
@@ -352,12 +313,12 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
                     .last("LIMIT 500"); // 限制总数量
             
             List<DataETable> results = this.baseMapper.selectList(queryWrapper);
-            log.info("✅ MCP查询所有异常完成，返回{}条记录", results.size());
+            log.info("MCP查询所有异常完成，返回{}条记录", results.size());
             
             return results;
             
         } catch (Exception e) {
-            log.error("❌ MCP查询所有异常失败", e);
+            log.error("MCP查询所有异常失败", e);
             return new ArrayList<>();
         }
     }
@@ -365,7 +326,7 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
     @Override
     public List<Map<String, Object>> getAllElevatorsForMCP() {
         try {
-            log.info("🔍 MCP获取所有电梯信息");
+            log.info("MCP获取所有电梯信息");
             
             // 由于当前数据库结构中可能没有专门的电梯表
             // 这里返回模拟的电梯信息，实际项目中需要根据具体表结构调整
@@ -386,11 +347,11 @@ public class DataETableServiceImpl extends ServiceImpl<DataETableMapper, DataETa
             elevator2.put("status", "维护中");
             elevators.add(elevator2);
             
-            log.info("✅ MCP获取电梯信息完成，返回{}台电梯", elevators.size());
+            log.info("MCP获取电梯信息完成，返回{}台电梯", elevators.size());
             return elevators;
             
         } catch (Exception e) {
-            log.error("❌ MCP获取电梯信息失败", e);
+            log.error("MCP获取电梯信息失败", e);
             return new ArrayList<>();
         }
     }

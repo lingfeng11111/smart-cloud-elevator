@@ -31,17 +31,6 @@ public class DataETableController {
     @Autowired
     private IDataETableService dataETableService;
 
-    /**
-     * 寿命分析
-     * @deprecated 此接口已弃用，请使用 /mcp/tools/lifetime-analysis (MCP Function Calling)
-     */
-    @Deprecated
-    @GetMapping("/lifetime-analysis")
-    public Result<String> getLifetimeAnalysis() {
-        // 添加弃用警告日志
-        log.warn("⚠️ 使用了已弃用的寿命分析接口 /data-etable/lifetime-analysis，建议使用 MCP Function Calling");
-        return dataETableService.getLifetimeAnalysis();
-    }
 
     /**
      * 新的MCP寿命分析接口 - 支持更智能的AI数据查询

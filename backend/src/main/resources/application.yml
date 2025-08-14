@@ -2,7 +2,7 @@ spring:
   application:
     name: ElectorAI
   datasource:
-    url: jdbc:h2:tcp://localhost:9092//Users/lingfeng/Desktop/zhiyunti/backend/SQL/H2elevator;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;FILE_LOCK=FS
+    url: jdbc:h2:tcp://localhost:9092/./SQL/H2elevator;MODE=MySQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE;DB_CLOSE_DELAY=-1;FILE_LOCK=FS
     driver-class-name: org.h2.Driver
     username: sa
     password:

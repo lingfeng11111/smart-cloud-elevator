@@ -30,7 +30,7 @@ public class MCPController {
     @GetMapping("/tools")
     public Result<Map<String, Object>> getMCPTools() {
         try {
-            log.info("🔍 获取MCP工具列表");
+            log.info("获取MCP工具列表");
             
             if (!jythonMCPService.isReady()) {
                 return Result.error("MCP服务未就绪，请稍后重试");
@@ -44,11 +44,11 @@ public class MCPController {
             response.put("total_tools", tools.size());
             response.put("mcp_status", jythonMCPService.getStatus());
             
-            log.info("✅ 返回{}个MCP工具", tools.size());
+            log.info("返回{}个MCP工具", tools.size());
             return Result.success("获取MCP工具列表成功", response);
             
         } catch (Exception e) {
-            log.error("❌ 获取MCP工具列表失败", e);
+            log.error("获取MCP工具列表失败", e);
             return Result.error("获取MCP工具列表失败: " + e.getMessage());
         }
     }
@@ -59,7 +59,7 @@ public class MCPController {
     @PostMapping("/tool-call")
     public Result<Object> callMCPTool(@RequestBody MCPToolCallRequest request) {
         try {
-            log.info("🔧 执行MCP工具调用: {} with parameters: {}", 
+            log.info("执行MCP工具调用: {} with parameters: {}",
                     request.getToolName(), request.getParameters());
             
             if (!jythonMCPService.isReady()) {
@@ -80,11 +80,11 @@ public class MCPController {
             // 解析JSON结果
             Object parsedResult = parseJsonResult(jsonResult);
             
-            log.info("✅ MCP工具调用成功: {}", request.getToolName());
+            log.info("MCP工具调用成功: {}", request.getToolName());
             return Result.success("MCP工具调用成功", parsedResult);
             
         } catch (Exception e) {
-            log.error("❌ MCP工具调用失败: {} - {}", request.getToolName(), e.getMessage(), e);
+            log.error("MCP工具调用失败: {} - {}", request.getToolName(), e.getMessage(), e);
             return Result.error("MCP工具调用失败: " + e.getMessage());
         }
     }

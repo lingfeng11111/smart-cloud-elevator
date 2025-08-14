@@ -20,23 +20,23 @@ public class H2ServerConfig {
 				"-ifNotExists",
 				"-tcpPort", "9092"
 			);
-			logger.info("✅ H2 TCP 服务器准备在端口 9092 启动");
+			logger.info("H2 TCP 服务器准备在端口 9092 启动");
 			return server;
 		} catch (Exception e) {
-			logger.error("❌ H2 TCP 服务器启动失败: {}", e.getMessage());
+			logger.error("H2 TCP 服务器启动失败: {}", e.getMessage());
 			// 如果端口被占用，尝试使用其他端口
 			if (e.getMessage().contains("Address already in use")) {
-				logger.warn("⚠️ 端口 9092 被占用，尝试使用端口 9093");
+				logger.warn("端口 9092 被占用，尝试使用端口 9093");
 				try {
 					Server fallbackServer = Server.createTcpServer(
 						"-tcp",
 						"-ifNotExists",
 						"-tcpPort", "9093"
 					);
-					logger.info("✅ H2 TCP 服务器准备在备用端口 9093 启动");
+					logger.info("H2 TCP 服务器准备在备用端口 9093 启动");
 					return fallbackServer;
 				} catch (Exception fallbackE) {
-					logger.error("❌ 备用端口 9093 也启动失败: {}", fallbackE.getMessage());
+					logger.error("备用端口 9093 也启动失败: {}", fallbackE.getMessage());
 					throw new RuntimeException("H2 TCP服务器启动失败，请检查端口占用情况", fallbackE);
 				}
 			}

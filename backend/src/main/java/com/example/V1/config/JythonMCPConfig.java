@@ -41,7 +41,7 @@ public class JythonMCPConfig {
     @PostConstruct
     public void initJythonMCP() {
         try {
-            log.info("🚀 开始初始化Jython MCP环境...");
+            log.info("开始初始化Jython MCP环境...");
             
             // 创建Python解释器
             pythonInterpreter = new PythonInterpreter();
@@ -58,10 +58,10 @@ public class JythonMCPConfig {
             PyObject initResult = pythonInterpreter.eval("initialize_mcp_environment()");
             
             mcpInitialized = true;
-            log.info("✅ Jython MCP环境初始化成功");
+            log.info("Jython MCP环境初始化成功");
             
         } catch (Exception e) {
-            log.error("❌ Jython MCP环境初始化失败", e);
+            log.error("Jython MCP环境初始化失败", e);
             mcpInitialized = false;
         }
     }
@@ -70,7 +70,7 @@ public class JythonMCPConfig {
      * 加载Python MCP工具模块
      */
     private void loadPythonMCPModule() throws IOException {
-        log.info("📦 加载Python MCP工具模块...");
+        log.info("加载Python MCP工具模块...");
         
         try {
             // 加载主要的MCP工具模块
@@ -78,14 +78,14 @@ public class JythonMCPConfig {
             if (mcpToolsResource.exists()) {
                 try (InputStream inputStream = mcpToolsResource.getInputStream()) {
                     pythonInterpreter.execfile(inputStream, "mcp_tools.py");
-                    log.info("✅ MCP工具模块加载成功");
+                    log.info("MCP工具模块加载成功");
                 }
             } else {
-                log.warn("⚠️ MCP工具模块文件不存在: python/mcp_tools.py");
+                log.warn("MCP工具模块文件不存在: python/mcp_tools.py");
             }
             
         } catch (Exception e) {
-            log.error("❌ 加载Python MCP模块失败", e);
+            log.error("加载Python MCP模块失败", e);
             throw new IOException("Failed to load Python MCP modules", e);
         }
     }
@@ -95,12 +95,12 @@ public class JythonMCPConfig {
      */
     public String callMCPTool(String toolName, Map<String, Object> parameters) {
         if (!mcpInitialized) {
-            log.warn("⚠️ MCP环境未初始化，无法调用工具: {}", toolName);
+            log.warn("MCP环境未初始化，无法调用工具: {}", toolName);
             return createErrorResponse("MCP环境未初始化", toolName, parameters);
         }
 
         try {
-            log.info("🔧 调用MCP工具: {} with parameters: {}", toolName, parameters);
+            log.info("调用MCP工具: {} with parameters: {}", toolName, parameters);
             
             // 设置参数
             for (Map.Entry<String, Object> entry : parameters.entrySet()) {
@@ -111,7 +111,7 @@ public class JythonMCPConfig {
             StringBuilder functionCall = new StringBuilder(toolName + "(");
             boolean first = true;
             for (String key : parameters.keySet()) {
-                if (!first) functionCall.append(", ");
+                if (!first) {functionCall.append(", ");}
                 functionCall.append(key).append("=").append(key);
                 first = false;
             }
@@ -121,11 +121,11 @@ public class JythonMCPConfig {
             PyObject result = pythonInterpreter.eval(functionCall.toString());
             String jsonResult = result.toString();
             
-            log.info("✅ MCP工具调用成功: {}", toolName);
+            log.info("MCP工具调用成功: {}", toolName);
             return jsonResult;
             
         } catch (Exception e) {
-            log.error("❌ MCP工具调用失败: {} - {}", toolName, e.getMessage(), e);
+            log.error("MCP工具调用失败: {} - {}", toolName, e.getMessage(), e);
             return createErrorResponse(e.getMessage(), toolName, parameters);
         }
     }
