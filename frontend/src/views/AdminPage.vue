@@ -33,37 +33,72 @@ const toggleAIAnalysis = async () => {
   mainAnalysis.value = "正在分析中...";
   
   try {
+    console.log('🚀 开始AI寿命预测分析...');
     const response = await aiSimulationApi.getLifetimeAnalysis();
-    console.log('AI寿命预测分析处理后数据:', response);
+    console.log('📊 AI寿命预测API原始响应:', response);
     
-    if (response && response.data) {
-      // 确保数据即使是空字符串也能显示有意义的内容
-      if (response.data.main || response.data.main === '') {
-        mainAnalysis.value = response.data.main || "无主要分析结果";
+    if (response && response.success !== false) {
+      let analysisData = null;
+      
+      // 尝试多种数据结构解析
+      if (response.data && typeof response.data === 'string') {
+        try {
+          // 尝试解析JSON字符串
+          analysisData = JSON.parse(response.data);
+          console.log('✅ JSON解析成功:', analysisData);
+        } catch (parseError) {
+          console.log('⚠️ JSON解析失败，使用原始字符串');
+          analysisData = {
+            main: "AI分析完成",
+            message: response.data
+          };
+        }
+      } else if (response.data && typeof response.data === 'object') {
+        // 直接使用对象数据
+        analysisData = response.data;
+        console.log('✅ 直接使用对象数据:', analysisData);
       } else {
-        mainAnalysis.value = "无法获取主要分析结果";
+        console.log('⚠️ 未知数据格式，使用默认处理');
+        analysisData = {
+          main: response.message || "分析完成", 
+          message: response.data || "详细分析数据不可用"
+        };
       }
       
-      if (response.data.message || response.data.message === '') {
-        fullMessage.value = response.data.message || "无详细分析内容";
+      // 设置主要分析结果（预览框）
+      if (analysisData.main) {
+        mainAnalysis.value = analysisData.main;
       } else {
-        fullMessage.value = "无法获取详细分析内容";
+        mainAnalysis.value = "预测分析完成，点击查看详细内容";
       }
       
-      // 如果数据中没有有意义的内容，提供一个友好的提示
-      if (!response.data.main && !response.data.message) {
-        mainAnalysis.value = "API返回的数据格式不包含有效的分析结果";
-        fullMessage.value = "后端API未返回预期的分析内容，请检查API实现或联系管理员。";
+      // 设置详细分析结果（详细分析框）
+      if (analysisData.message) {
+        // 检查是否是JSON字符串格式的详细分析
+        if (typeof analysisData.message === 'string' && 
+            (analysisData.message.includes('{') || analysisData.message.includes('设备'))) {
+          fullMessage.value = analysisData.message;
+        } else {
+          fullMessage.value = analysisData.message.toString();
+        }
+      } else {
+        fullMessage.value = "详细分析内容不可用，请重试或联系管理员";
       }
+      
+      // 成功提示
+      console.log('🎉 寿命预测分析处理完成');
+      console.log('📋 预览内容:', mainAnalysis.value);
+      console.log('📄 详细内容长度:', fullMessage.value.length, '字符');
+      
     } else {
-      console.error('API返回的数据格式不正确:', response);
-      mainAnalysis.value = "获取分析失败: 数据格式不正确";
-      fullMessage.value = response ? JSON.stringify(response, null, 2) : "未收到任何响应数据";
+      console.error('❌ API返回失败状态:', response);
+      mainAnalysis.value = "获取分析失败：" + (response.message || "未知错误");
+      fullMessage.value = "请检查网络连接或稍后重试。如果问题持续存在，请联系技术支持。";
     }
   } catch (error) {
-    console.error("获取AI寿命分析失败:", error);
-    mainAnalysis.value = "获取分析失败，请检查网络";
-    fullMessage.value = error.message || "未知错误";
+    console.error("❌ 获取AI寿命分析失败:", error);
+    mainAnalysis.value = "网络请求失败，请检查连接";
+    fullMessage.value = `错误详情: ${error.message || '未知网络错误'}\n\n请检查：\n1. 网络连接是否正常\n2. 后端服务是否运行\n3. API地址是否正确`;
   } finally {
     isLoading.value = false;
   }

@@ -59,32 +59,68 @@ public class MCPController {
     @PostMapping("/tool-call")
     public Result<Object> callMCPTool(@RequestBody MCPToolCallRequest request) {
         try {
-            log.info("执行MCP工具调用: {} with parameters: {}",
-                    request.getToolName(), request.getParameters());
+            // 🎯 可视化打印 - MCP工具调用开始
+            log.info("\n" +
+                    " ======================================\n" +
+                    "  [MCP Function Calling] 工具调用开始\n" +
+                    "工具名称: {}\n" +
+                    " 参数列表: {}\n" +
+                    "时间: {}\n" +
+                    "======================================", 
+                    request.getToolName(), 
+                    request.getParameters(), 
+                    java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
             
             if (!jythonMCPService.isReady()) {
+                log.warn(" [MCP] 服务未就绪，请稍后重试");
                 return Result.error("MCP服务未就绪，请稍后重试");
             }
             
             // 验证工具名称
             if (request.getToolName() == null || request.getToolName().trim().isEmpty()) {
+                log.error(" [MCP] 工具名称不能为空");
                 return Result.error("工具名称不能为空");
             }
             
-            // 执行Python MCP工具
+            // 🔧 调用Python MCP工具
+            log.info(" [执行阶段] 正在调用Jython Python工具...");
+            log.info("   └─ Python环境: Jython 2.7.3");
+            log.info("   └─ 工具路径: resources/python/mcp_tools.py");
+            
             String jsonResult = jythonMCPService.callTool(
                 request.getToolName(), 
                 request.getParameters() != null ? request.getParameters() : new HashMap<>()
             );
             
-            // 解析JSON结果
+            log.info(" [Python执行完成] 结果长度: {} 字符", jsonResult.length());
+            
+            //  解析JSON结果
+            log.info(" [解析阶段] 正在解析Python工具返回结果...");
             Object parsedResult = parseJsonResult(jsonResult);
             
-            log.info("MCP工具调用成功: {}", request.getToolName());
+            // 打印执行结果摘要
+            log.info(" [执行成功] MCP工具调用完成:");
+            log.info("┌─  工具: {}", request.getToolName());
+            log.info("├─  结果类型: {}", parsedResult.getClass().getSimpleName());
+            log.info("├─  执行状态: 成功");
+            if (parsedResult instanceof Map) {
+                Map<String, Object> resultMap = (Map<String, Object>) parsedResult;
+                if (resultMap.containsKey("total_records")) {
+                    log.info("├─ 数据量: {} 条记录", resultMap.get("total_records"));
+                }
+                if (resultMap.containsKey("analysis_type")) {
+                    log.info("├─  分析类型: {}", resultMap.get("analysis_type"));
+                }
+            }
+            log.info("└─  完成时间: {}", 
+                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
+            log.info("======================================\n");
+            
             return Result.success("MCP工具调用成功", parsedResult);
             
         } catch (Exception e) {
-            log.error("MCP工具调用失败: {} - {}", request.getToolName(), e.getMessage(), e);
+            log.error(" [MCP错误] 工具调用失败: {} - {}", request.getToolName(), e.getMessage(), e);
+            log.info("======================================\n");
             return Result.error("MCP工具调用失败: " + e.getMessage());
         }
     }
@@ -95,7 +131,7 @@ public class MCPController {
     @PostMapping("/query-maintenance-history")
     public Result<Object> queryMaintenanceHistory(@RequestBody MaintenanceHistoryRequest request) {
         try {
-            log.info("🔍 查询维护历史: {}", request);
+            log.info(" 查询维护历史: {}", request);
             
             Map<String, Object> parameters = new HashMap<>();
             if (request.getElevatorId() != null) {
@@ -117,7 +153,7 @@ public class MCPController {
             return Result.success("查询维护历史成功", parsedResult);
             
         } catch (Exception e) {
-            log.error("❌ 查询维护历史失败", e);
+            log.error("查询维护历史失败", e);
             return Result.error("查询维护历史失败: " + e.getMessage());
         }
     }
@@ -128,7 +164,7 @@ public class MCPController {
     @PostMapping("/analyze-anomaly-patterns")
     public Result<Object> analyzeAnomalyPatterns(@RequestBody AnomalyPatternsRequest request) {
         try {
-            log.info("📊 分析异常模式: {}", request);
+            log.info("分析异常模式: {}", request);
             
             Map<String, Object> parameters = new HashMap<>();
             if (request.getSystemName() != null) {
@@ -150,7 +186,7 @@ public class MCPController {
             return Result.success("异常模式分析成功", parsedResult);
             
         } catch (Exception e) {
-            log.error("❌ 异常模式分析失败", e);
+            log.error("异常模式分析失败", e);
             return Result.error("异常模式分析失败: " + e.getMessage());
         }
     }
@@ -161,7 +197,7 @@ public class MCPController {
     @PostMapping("/calculate-health-score")
     public Result<Object> calculateHealthScore(@RequestBody HealthScoreRequest request) {
         try {
-            log.info("🏥 计算设备健康评分: {}", request);
+            log.info(" 计算设备健康评分: {}", request);
             
             Map<String, Object> parameters = new HashMap<>();
             if (request.getElevatorId() != null) {
@@ -177,7 +213,7 @@ public class MCPController {
             return Result.success("设备健康评分计算成功", parsedResult);
             
         } catch (Exception e) {
-            log.error("❌ 设备健康评分计算失败", e);
+            log.error(" 设备健康评分计算失败", e);
             return Result.error("设备健康评分计算失败: " + e.getMessage());
         }
     }
@@ -190,7 +226,7 @@ public class MCPController {
             @RequestParam(defaultValue = "true") Boolean includePredictions,
             @RequestParam(defaultValue = "true") Boolean includeRecommendations) {
         try {
-            log.info("📋 获取综合系统状态");
+            log.info("获取综合系统状态");
             
             Map<String, Object> parameters = new HashMap<>();
             parameters.put("include_predictions", includePredictions);
